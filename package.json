@@ -1,5 +1,5 @@
 {
-  "name": "react-frame-component",
+  "name": "@superhuman/react-frame-component",
   "version": "2.0.0",
   "description": "React component to wrap your application or component in an iFrame for encapsulation purposes",
   "main": "lib/index.js",
