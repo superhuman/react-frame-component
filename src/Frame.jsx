@@ -53,7 +53,7 @@ export default class Frame extends Component {
   constructor(props, context) {
     super(props, context);
     this._isMounted = false;
-    this._isInitialRender = false;
+    this._isInitialRender = true;
   }
 
   componentDidMount() {
@@ -106,7 +106,6 @@ export default class Frame extends Component {
           </div>
         </DocumentContext>
       );
-
 
       swallowInvalidHeadWarning();
 
