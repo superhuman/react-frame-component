@@ -94,7 +94,7 @@ export default class Frame extends Component {
     const doc = this.getDoc();
     if (doc && doc.readyState === 'complete' && doc.body && doc.body.children.length) {
       if (doc.querySelector('div') === null) {
-        this._isInitialRender = true
+        this._isInitialRender = true;
       }
 
       const win = doc.defaultView || doc.parentView;
@@ -112,8 +112,13 @@ export default class Frame extends Component {
 
       // unstable_renderSubtreeIntoContainer allows us to pass this component as
       // the parent, which exposes context to any child components.
-      const callback = this._isInitialRender ? this.props.contentDidMount : this.props.contentDidUpdate;
-      this._isInitialRender = false
+      let callback;
+      if (this._isInitialRender) {
+        callback = this.props.contentDidMount;
+      } else {
+        callback = this.props.contentDidUpdate;
+      }
+      this._isInitialRender = false;
       const mountTarget = this.getMountTarget();
 
       ReactDOM.unstable_renderSubtreeIntoContainer(this, contents, mountTarget, callback);
