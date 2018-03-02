@@ -276,7 +276,7 @@ describe('The Frame Component', () => {
     });
   });
 
-  it.only('should call contentDidUpdate on subsequent updates', () => {
+  it('should call contentDidUpdate on subsequent updates', () => {
     div = document.body.appendChild(document.createElement('div'));
 
     const didMount = sinon.spy();
