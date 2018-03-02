@@ -53,6 +53,7 @@ export default class Frame extends Component {
   constructor(props, context) {
     super(props, context);
     this._isMounted = false;
+    this._isInitialRender = true;
   }
 
   componentDidMount() {
@@ -82,7 +83,7 @@ export default class Frame extends Component {
     if (this.props.mountTarget) {
       return doc.querySelector(this.props.mountTarget);
     }
-    return doc.body.children[0];
+    return doc && doc.body && doc.body.children[0];
   }
 
   renderFrameContents() {
@@ -91,13 +92,12 @@ export default class Frame extends Component {
     }
 
     const doc = this.getDoc();
-    if (doc && doc.readyState === 'complete') {
+    if (doc && doc.readyState === 'complete' && doc.body && doc.body.children.length) {
       if (doc.querySelector('div') === null) {
-        this._setInitialContent = false;
+        this._isInitialRender = true;
       }
 
       const win = doc.defaultView || doc.parentView;
-      const initialRender = !this._setInitialContent;
       const contents = (
         <DocumentContext document={doc} window={win}>
           <div className="frame-content">
@@ -107,18 +107,17 @@ export default class Frame extends Component {
         </DocumentContext>
       );
 
-      if (initialRender) {
-        doc.open('text/html', 'replace');
-        doc.write(this.props.initialContent);
-        doc.close();
-        this._setInitialContent = true;
-      }
-
       swallowInvalidHeadWarning();
 
       // unstable_renderSubtreeIntoContainer allows us to pass this component as
       // the parent, which exposes context to any child components.
-      const callback = initialRender ? this.props.contentDidMount : this.props.contentDidUpdate;
+      let callback;
+      if (this._isInitialRender) {
+        callback = this.props.contentDidMount;
+      } else {
+        callback = this.props.contentDidUpdate;
+      }
+      this._isInitialRender = false;
       const mountTarget = this.getMountTarget();
 
       ReactDOM.unstable_renderSubtreeIntoContainer(this, contents, mountTarget, callback);
@@ -131,6 +130,7 @@ export default class Frame extends Component {
   render() {
     const props = {
       ...this.props,
+      srcDoc: this.props.initialContent,
       children: undefined // The iframe isn't ready so we drop children from props here. #12, #17
     };
     delete props.head;
