@@ -63,7 +63,7 @@ describe('The Frame Component', () => {
     return new Promise((resolve) => {
       div = document.body.appendChild(document.createElement('div'));
       frame = ReactDOM.render(
-        <Frame head={<link href="styles.css" contentDidMount={resolve} />} />,
+        <Frame head={<link href="styles.css" />} contentDidMount={resolve} />,
         div,
       );
     }).then(() => {
@@ -78,7 +78,7 @@ describe('The Frame Component', () => {
     return new Promise((resolve) => {
       div = document.body.appendChild(document.createElement('div'));
       frame = ReactDOM.render(
-        <Frame head={<script src="foo.js" contentDidMount={resolve} />}>
+        <Frame head={<script src="foo.js" />} contentDidMount={resolve}>
           <h1>Hello</h1>
           <h2>World</h2>
         </Frame>,
@@ -156,7 +156,7 @@ describe('The Frame Component', () => {
 
       return new Promise((resolve) => {
         component2 = ReactDOM.render(
-          <Frame contentDidMount={resolve}>
+          <Frame contentDidUpdate={resolve}>
             <p>Test 2</p>
           </Frame>,
           div,
@@ -333,44 +333,50 @@ describe('The Frame Component', () => {
 
   it('should not error when parent components are reused', () => {
     div = document.body.appendChild(document.createElement('div'));
-    const component = ReactDOM.render(
-      <ul className="container">
-        <li key="1">
-          <Frame>
-            <p>Text 1</p>
-          </Frame>
-        </li>
-        <li key="2">
-          <Frame>
-            <p>Text 2</p>
-          </Frame>
-        </li>
-      </ul>,
-      div
-    );
+    let component;
+    let component2;
+    return new Promise((resolve) => {
+      component = ReactDOM.render(
+        <ul className="container">
+          <li key="1">
+            <Frame>
+              <p>Text 1</p>
+            </Frame>
+          </li>
+          <li key="2">
+            <Frame contentDidMount={resolve}>
+              <p>Text 2</p>
+            </Frame>
+          </li>
+        </ul>,
+        div
+      );
+    }).then(() => {
+      const iframes1 = ReactDOM.findDOMNode(component).querySelectorAll('iframe');
+      expect(iframes1[0].contentDocument.body.querySelector('p').textContent).to.equal('Text 1');
+      expect(iframes1[1].contentDocument.body.querySelector('p').textContent).to.equal('Text 2');
 
-    const iframes1 = ReactDOM.findDOMNode(component).querySelectorAll('iframe');
-    expect(iframes1[0].contentDocument.body.querySelector('p').textContent).to.equal('Text 1');
-    expect(iframes1[1].contentDocument.body.querySelector('p').textContent).to.equal('Text 2');
-
-    const component2 = ReactDOM.render(
-      <ul className="container">
-        <li key="2">
-          <Frame>
-            <p>Text 2</p>
-          </Frame>
-        </li>
-        <li key="1">
-          <Frame>
-            <p>Text 1</p>
-          </Frame>
-        </li>
-      </ul>,
-      div,
-    );
-
-    const iframes2 = ReactDOM.findDOMNode(component2).querySelectorAll('iframe');
-    expect(iframes2[0].contentDocument.body.querySelector('p').textContent).to.equal('Text 2');
-    expect(iframes2[1].contentDocument.body.querySelector('p').textContent).to.equal('Text 1');
+      return new Promise((resolve) => {
+        component2 = ReactDOM.render(
+          <ul className="container">
+            <li key="2">
+              <Frame>
+                <p>Text 2</p>
+              </Frame>
+            </li>
+            <li key="1">
+              <Frame contentDidUpdate={resolve}>
+                <p>Text 1</p>
+              </Frame>
+            </li>
+          </ul>,
+          div,
+        );
+      })
+    }).then(() => {
+      const iframes2 = ReactDOM.findDOMNode(component2).querySelectorAll('iframe');
+      expect(iframes2[0].contentDocument.body.querySelector('p').textContent).to.equal('Text 2');
+      expect(iframes2[1].contentDocument.body.querySelector('p').textContent).to.equal('Text 1');
+    });
   });
 });
